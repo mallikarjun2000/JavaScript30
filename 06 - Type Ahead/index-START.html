@@ -1,23 +1,74 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title>Type Ahead 👀</title>
-  <link rel="stylesheet" href="style.css">
-  <link rel="icon" href="https://fav.farm/🔥" />
-</head>
-<body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Type Ahead 👀</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="icon" href="https://fav.farm/🔥" />
+  </head>
+  <body>
+    <form class="search-form">
+      <input type="text" class="search" placeholder="City or State" />
+      <ul class="suggestions">
+        <li>Filter for a city</li>
+        <li>or a state</li>
+      </ul>
+    </form>
+    <script>
+      const endpoint =
+        "https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json";
+      let listOfCitiesAndStates = [];
+      getData(endpoint)
+        .then((result) => result.json())
+        .then((result) => {
+          listOfCitiesAndStates = result;
+        })
+        .catch((err) => {
+          console.log("Connection error", err);
+        });
 
-  <form class="search-form">
-    <input type="text" class="search" placeholder="City or State">
-    <ul class="suggestions">
-      <li>Filter for a city</li>
-      <li>or a state</li>
-    </ul>
-  </form>
-<script>
-const endpoint = 'https://gist.githubusercontent.com/Miserlou/c5cd8364bf9b2420bb29/raw/2bf258763cdddd704f8ffd3ea9a3e81d25e2c6f6/cities.json';
+      const searchInputEle = document.querySelector("input");
+      searchInputEle.addEventListener("input", (e) => {
+        const searchTerm = e.target.value;
+        const searchResults = listOfCitiesAndStates.filter(
+          (item) =>
+            item.city.includes(searchTerm) || item.state.includes(searchTerm)
+        );
+        appendResultsToUI(searchResults, searchTerm);
+      });
+      function getData(endpoint) {
+        return fetch(endpoint);
+      }
 
-</script>
-</body>
+      function appendResultsToUI(result, searchKey) {
+        if (!searchKey) {
+          return;
+        }
+        const suggestionList =
+          document.getElementsByClassName("suggestions")[0];
+        suggestionList.innerHTML = "";
+        result.forEach((element) => {
+          const newElement = document.createElement("li");
+          const cityName = element.city.replace(
+            searchKey,
+            `<span class='hl'>${searchKey}</span>`
+          );
+          const stateName = element.state.replace(
+            searchKey,
+            `<span class='hl'>${searchKey}</span>`
+          );
+          newElement.innerHTML = `
+          <span>${cityName}, ${stateName}</span>
+          `;
+
+          const populationElement = document.createElement("span");
+          populationElement.classList.add("population");
+          populationElement.innerText = element.population;
+          newElement.append(populationElement);
+
+          suggestionList.append(newElement);
+        });
+      }
+    </script>
+  </body>
 </html>
